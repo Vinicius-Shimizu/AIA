@@ -1,3 +1,5 @@
+import ReactMarkdown from "react-markdown";
+
 const MessageBox = (props) => {
     const {content, sender} = props;
     
@@ -11,9 +13,9 @@ const MessageBox = (props) => {
     return (
         <div className={`flex ${align}`}>
             <div 
-                className={`inline-flex justify-center border-2  p-4 m-4 rounded-lg w-fit h-fit ${boxClass}`}
+                className={`border-2  p-4 m-4 rounded-lg w-fit h-fit ${boxClass}`}
             >
-                {content}
+                <ReactMarkdown>{content}</ReactMarkdown>
             </div>
 
         </div>

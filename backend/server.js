@@ -1,13 +1,32 @@
 // server.js
 const express = require("express");
 const cors = require("cors");
+const multer = require("multer");
+const { exec } = require("child_process");
 
 const app = express();
 app.use(express.json());
 app.use(cors());
 
+
+const upload = multer({ dest: "uploads/" });
+
+app.post("/transcribe", upload.single("audio"), (req, res) => {
+  const filePath = req.file.path;
+  console.log("Route found!")
+  console.log(req)
+  exec(`python3 whisper_test.py whisper_test.m4a`, (error, stdout, stderr) => {
+    if (error || stderr) return res.status(500).send(stderr || error.message);
+    res.json({ text: stdout });
+  });
+});
+
+
+
+
 // Handle chat requests
 app.post("/chat", async (req, res) => {
+
   const { messages } = req.body;
   console.log(messages)
   try {
@@ -17,23 +36,13 @@ app.post("/chat", async (req, res) => {
       body: JSON.stringify({
         model: "gemma3",
         messages,
+        stream: false,
       }),
     });
 
-    const text = await response.text();
-
-    const lines = text.split("\n").filter((line) => line.trim() !== "");
-    const parsedObjects = lines.map((line) => {
-        try{ return JSON.parse(line) }
-        catch {return null }
-    }).filter(Boolean)
-
-    const assitantContent = parsedObjects
-        .filter(obj => obj.message && obj.message.role === "assistant" && obj.message.content)
-        .map(obj => obj.message.content)
-        .join("");
-     
-    res.json({ message: assitantContent });
+    const data = await response.json();
+    const assistantContent = data.message.content;
+    res.json({ message: assistantContent });
   } catch (err) {
     console.error("Error contacting Ollama:", err);
     res.status(500).json({ error: "Failed to reach Ollama." });
