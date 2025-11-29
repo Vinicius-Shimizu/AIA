@@ -1,30 +1,54 @@
-// server.js
-const express = require("express");
-const cors = require("cors");
-const multer = require("multer");
-const { exec } = require("child_process");
+import express from "express";
+import cors from "cors";
+import {spawn} from "child_process";
 
 const app = express();
 app.use(express.json());
 app.use(cors());
 
+const PORT = 3000;
 
-const upload = multer({ dest: "uploads/" });
+function startSTTService() {
+  const stt = spawn("python", ["-u", "stt_engine.py"]);
 
-app.post("/transcribe", upload.single("audio"), (req, res) => {
-  const filePath = req.file.path;
-  console.log("Route found!")
-  console.log(req)
-  exec(`python3 whisper_test.py whisper_test.m4a`, (error, stdout, stderr) => {
-    if (error || stderr) return res.status(500).send(stderr || error.message);
-    res.json({ text: stdout });
+  let buffer = "";
+
+  stt.stdout.on("data", (chunk) => {
+    buffer += chunk;
+
+    let lines = buffer.split("\n");
+    buffer = lines.pop(); // save incomplete line
+
+    for (const line of lines) {
+      if (!line.trim()) continue;
+
+      try {
+        const json = JSON.parse(line);
+
+        switch (json.type) {
+          case "AIA":
+            console.log("[STT AIA]:", json.text);
+            break;
+          case "transcription":
+            console.log("[STT Command]:", json.text);
+            break;
+          case "status":
+            console.log("[STT Status]:", json.text);
+            break;
+          default:
+            console.log("[STT LOG]", json);
+        }
+
+      } catch (err) {
+        console.log("[JSON PARSE ERROR]", err);
+        console.log("[LINE RECEIVED]", line);
+      }
+    }
   });
-});
+}
 
 
-
-
-// Handle chat requests
+// Express API
 app.post("/chat", async (req, res) => {
 
   const { messages } = req.body;
@@ -49,5 +73,5 @@ app.post("/chat", async (req, res) => {
   }
 });
 
-const PORT = 3000;
-app.listen(PORT, () => console.log(`✅ Backend running on http://localhost:${PORT}`));
+startSTTService();
+app.listen(PORT, () => console.log(`Backend running on http://localhost:${PORT}`));
