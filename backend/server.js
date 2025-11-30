@@ -13,7 +13,7 @@ async function getOllamaResponse(query){
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      model: "gemma3",
+      model: "aia",
       messages: query,
       stream: false,
     }),
