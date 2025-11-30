@@ -8,12 +8,28 @@ app.use(cors());
 
 const PORT = 3000;
 
-function startSTTService() {
+async function getOllamaResponse(query){
+  const response = await fetch("http://127.0.0.1:11434/api/chat", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      model: "gemma3",
+      messages: query,
+      stream: false,
+    }),
+  });
+
+  const data = await response.json();
+  const assistantContent = data.message.content;
+  return assistantContent;
+} 
+
+async function startSTTService() {
   const stt = spawn("python", ["-u", "stt_engine.py"]);
 
   let buffer = "";
 
-  stt.stdout.on("data", (chunk) => {
+  stt.stdout.on("data", async (chunk) => {
     buffer += chunk;
 
     let lines = buffer.split("\n");
@@ -31,6 +47,9 @@ function startSTTService() {
             break;
           case "transcription":
             console.log("[STT Command]:", json.text);
+            const query = [{"role": "user", "content": json.text}]
+            const response = await getOllamaResponse(query);
+            console.log("[AIA]: ", response);  
             break;
           case "status":
             console.log("[STT Status]:", json.text);
@@ -47,31 +66,21 @@ function startSTTService() {
   });
 }
 
-
 // Express API
 app.post("/chat", async (req, res) => {
-
-  const { messages } = req.body;
-  console.log(messages)
-  try {
-    const response = await fetch("http://127.0.0.1:11434/api/chat", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        model: "gemma3",
-        messages,
-        stream: false,
-      }),
-    });
-
-    const data = await response.json();
-    const assistantContent = data.message.content;
-    res.json({ message: assistantContent });
-  } catch (err) {
+  try{
+    const query = req.body.messages;
+    console.log("Query sent: ", query);
+    const response = await getOllamaResponse(query);
+    res.json({message: response});
+  }catch (err) {
     console.error("Error contacting Ollama:", err);
     res.status(500).json({ error: "Failed to reach Ollama." });
   }
+  
 });
 
-startSTTService();
-app.listen(PORT, () => console.log(`Backend running on http://localhost:${PORT}`));
+app.listen(PORT, () => {
+  console.log(`Server running on http://localhost:${PORT}`)
+  startSTTService();
+});
