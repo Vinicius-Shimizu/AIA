@@ -7,6 +7,11 @@ import { z } from "zod";
 import { execSync, exec } from "child_process";
 import fs from "fs";
 import path from "path";
+import { fileURLToPath } from "url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const whitelistPath = path.join(__dirname, "apps_whitelist.json");
 
 // -----------------------------------------------
 // MCP Server Setup
@@ -26,37 +31,45 @@ mcpServer.registerTool(
     title: "Open application",
     description: "Opens an app using whitelist or dynamic discovery.",
     inputSchema: z.object({ app_name: z.string() }),
-    outputSchema: z.object({
-      result: z.boolean(),
-      message: z.string(),
-    }),
+
   },
 
   async ({ app_name }) => {
     const lower = app_name.toLowerCase();
+    const whitelist = JSON.parse(fs.readFileSync(whitelistPath, "utf-8")).apps;
+    
+    const response = function(result, message){
+      return {
+        content: [
+          {
+            type: "text",
+            text: message
+          }
+        ],
+        result: result,
+        message: message
+      };
+    }
+
+    const allowed = whitelist.some(app =>
+      lower.includes(app.toLowerCase()) ||
+      app.toLowerCase().includes(lower)
+    );
+    
+    // if(!allowed) return { result: false, message: `App "${app_name}" is not allowed.` };
+    if(!allowed) return response(false, `App "${app_name}" is not allowed.`); 
 
     try {
-      // Windows command to open Spotify
-      // if (lower === "spotify") {
-      //   exec(`start "" "spotify"`);  // works if registered as protocol handler
-      // }
       exec(`start "" "${lower}"`);
-      return { result: true, message: `Attempted to open ${app_name}` };
+      // return { result: true, message: `Attempted to open ${app_name}` };
+      return response(true, `Attempted to open ${app_name}`)
 
     } catch (err) {
-      return { result: false, message: `Failed: ${err.message}` };
+      // return { result: false, message: `Failed: ${err.message}` };
+      return response(false, `Failed: ${err.message}`);
     }
   }
 );
 
-
-// -----------------------------------------------
-// Start STDIO transport
-// -----------------------------------------------
 const transport = new StdioServerTransport();
 await mcpServer.connect(transport);
-// async function start() {
-//   await mcpServer.connect(transport);
-// }
-
-// start();

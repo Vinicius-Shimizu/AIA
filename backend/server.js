@@ -79,9 +79,9 @@ async function runSTTService() {
               console.log("[STT Command]:", json.text);
               const query = [{"role": "user", "content": json.text}]
               const response = await getOllamaResponse(query);
-              console.log("[AIA]: ", response); 
-              const toolCall = parseToolCall(response);
+              console.log("[AIA]: ", response);
 
+              const toolCall = parseToolCall(response);
               if (toolCall) {
                 const result = await callMCPTool(toolCall.tool, toolCall.args);
                 console.log("[MCP Result]", result);
