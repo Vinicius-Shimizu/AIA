@@ -53,15 +53,13 @@ mcpServer.registerTool(
       app.toLowerCase().includes(lower)
     );
     
-    if(!allowed) return response(false, `App "${app_name}" is not allowed.`); 
+    if(!allowed) return response(false, `App "${app_name}" is not included on the whitelist.`); 
 
     try {
       exec(`start "" "${lower}"`);
-      // return { result: true, message: `Attempted to open ${app_name}` };
       return response(true, `Attempted to open ${app_name}`)
 
     } catch (err) {
-      // return { result: false, message: `Failed: ${err.message}` };
       return response(false, `Failed: ${err.message}`);
     }
   }

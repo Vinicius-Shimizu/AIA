@@ -38,9 +38,9 @@ export async function runSTTService() {
           const { response, followup } = await processAIAQuery([
             { role: "user", content: json.text }
           ]);
-
-          console.log("[AIA Response]:", response);
-          if (followup) console.log("[Tool Followup]:", followup);
+          
+          if (followup) console.log("[AIA Response]:", followup);
+          else console.log("[AIA Response]:", response);
         }
       }
     });

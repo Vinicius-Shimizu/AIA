@@ -7,6 +7,7 @@ export async function runMCPServer() {
   });
 
   setMCPProcess(mcp);
+  console.log("MCP server started");
 
   mcp.stdout.on("data", (data) => {
     const lines = data.toString().split("\n");
@@ -23,7 +24,7 @@ export async function runMCPServer() {
       } catch {}
     }
   });
-  console.log("MCP server started");
+  
 
   mcp.stderr.on("data", (data) => {
     console.error("[MCP Error]", data.toString());
