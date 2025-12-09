@@ -1,5 +1,6 @@
 import { spawn } from "child_process";
 import { processAIAQuery } from "../core/processAIAQuery.js";
+import { addToHistory, getHistory } from "../core/historyManager.js";
 
 export async function runSTTService() {
   const stt = spawn("python", ["-u", "./stt/stt_engine.py"]);
@@ -34,12 +35,16 @@ export async function runSTTService() {
 
         else if (json.type === "transcription") {
           console.log("[Command]:", json.text);
-
-          const { response, followup } = await processAIAQuery([
-            { role: "user", content: json.text }
-          ]);
           
-          if (followup) console.log("[AIA Response]:", followup);
+          addToHistory("user", json.text);
+          const current_history = getHistory();
+
+          const { response, followup } = await processAIAQuery(current_history);
+          
+          if (followup) {
+            console.log("[AIA Response]:", followup);
+            addToHistory("assistant", followup);
+          }
           else console.log("[AIA Response]:", response);
         }
       }
