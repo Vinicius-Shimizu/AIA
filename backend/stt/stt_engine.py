@@ -48,6 +48,9 @@ class STTEngine:
         silence_frames = 0
         silence_limit = int(0.8 * self.SAMPLE_RATE)
 
+        command_silence_frames = 0
+        command_silence_limit = 8 * self.SAMPLE_RATE
+
         while self.running:
             block = self.audio_queue.get()
             self.buffer = np.concatenate([self.buffer, block], axis=0)
@@ -56,13 +59,26 @@ class STTEngine:
             speech_regions = get_speech_timestamps(audio_data, self.vad_options, self.SAMPLE_RATE)
 
             if not speech_regions:
+                # No speech detected
                 silence_frames += len(block)
+                if self.state == "LISTEN_COMMAND":
+                    command_silence_frames += len(block)
+                    
+                    if command_silence_frames >= command_silence_limit: # Speech timeout control
+                        self.state = "WAIT_WAKEWORD"
+                        command_silence_frames = 0
+                        print(json.dumps({
+                            "type": "status",
+                            "text": "Timeout: Returning to wake word mode"
+                        }), flush=True) 
+
                 if silence_frames >= silence_limit:
                     self.buffer = np.zeros((0, 1), dtype=np.float32)
                     silence_frames = 0
                 continue
 
             silence_frames = 0
+            command_silence_frames = 0
             last_segment = speech_regions[-1]
 
             if last_segment["end"] < len(audio_data) - int(0.6 * self.SAMPLE_RATE):
@@ -89,14 +105,13 @@ class STTEngine:
                             "text": "I am listening!"
                         }), flush=True)
                 else:
-                    self.state = "WAIT_WAKEWORD"
                     print(json.dumps({
                         "type": "transcription",
                         "text": text
                     }), flush=True)
 
                 self.buffer = np.zeros((0, 1), dtype=np.float32)
-
+            
     def start(self):
         self.running = True
         threading.Thread(target=self.recorder, daemon=True).start()
