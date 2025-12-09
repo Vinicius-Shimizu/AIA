@@ -102,8 +102,8 @@ class STTEngine:
         threading.Thread(target=self.recorder, daemon=True).start()
         threading.Thread(target=self.transcriber, daemon=True).start()
         print(json.dumps({
-            "type": "status",
-            "text": "Ready"
+            "type": "ready",
+            "text": "STT service started"
         }), flush=True)
 
     def stop(self):

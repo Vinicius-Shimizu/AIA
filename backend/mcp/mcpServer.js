@@ -1,10 +1,7 @@
-// -------------------------------
-// AIA MCP Server — Safe Dynamic App Discovery + EXE Fallback
-// -------------------------------
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
-import { execSync, exec } from "child_process";
+import { exec } from "child_process";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -56,7 +53,6 @@ mcpServer.registerTool(
       app.toLowerCase().includes(lower)
     );
     
-    // if(!allowed) return { result: false, message: `App "${app_name}" is not allowed.` };
     if(!allowed) return response(false, `App "${app_name}" is not allowed.`); 
 
     try {
@@ -73,3 +69,6 @@ mcpServer.registerTool(
 
 const transport = new StdioServerTransport();
 await mcpServer.connect(transport);
+
+
+
