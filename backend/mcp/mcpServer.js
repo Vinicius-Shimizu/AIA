@@ -56,8 +56,7 @@ mcpServer.registerTool(
 
     try {
       exec(`start "" "${lower}"`);
-      return response(true, `Attempted to open ${app_name}`)
-
+      return response(true, `${app_name} opened.`);
     } catch (err) {
       return response(false, `Failed: ${err.message}`);
     }
@@ -91,7 +90,4 @@ mcpServer.registerTool(
 )
 
 const transport = new StdioServerTransport();
-await mcpServer.connect(transport);
-
-
-
+await mcpServer.connect(transport); 

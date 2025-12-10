@@ -9,14 +9,23 @@ const whitelistPath = path.join(__dirname, "apps_whitelist.json");
 async function allow_app(app_name) {
     const lower = app_name.toLowerCase();
     const whitelist = JSON.parse(fs.readFileSync(whitelistPath, "utf-8"));
-    whitelist.apps.push(lower);
+
+    console.log(lower);
     console.log(whitelist);
-    fs.writeFileSync(whitelistPath, JSON.stringify(whitelist), function(err) {
-        if(err){
-            retu
+    const allowed = whitelist.apps.some(app =>
+        lower.includes(app.toLowerCase()) ||
+        app.toLowerCase().includes(lower)
+    );
+
+    const findApp = function(){
+        for (let app in whitelist.apps){
+            if(lower.includes(app.toLowerCase()) || app.toLowerCase().includes(lower)){
+                console.log("Found")
+                return app;
+            }
         }
-    })
-    
+    }
+    console.log(findApp());
 }
 
-allow_app("test");
+allow_app("calculadora");

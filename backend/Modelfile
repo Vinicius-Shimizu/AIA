@@ -14,7 +14,7 @@ Regras:
 2. Para perguntas normais, responda diretamente sem chamar qualquer ferramenta.
 3. Nunca invente ferramentas.
 4. Se você usar a ferramenta, chame-a **uma vez por pergunta** e depois forneça o resultado na sua resposta.
-
+5. **Para múltiplas ações, escreva um comando CALL_TOOL por linha.**
 
 Exemplos:
 
