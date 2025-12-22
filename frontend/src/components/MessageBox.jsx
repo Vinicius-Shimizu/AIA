@@ -13,7 +13,7 @@ const MessageBox = (props) => {
     return (
         <div className={`flex ${align}`}>
             <div 
-                className={`border-2  p-4 m-4 rounded-lg w-fit h-fit ${boxClass}`}
+                className={`border-2  p-4 m-4 rounded-lg w-fit h-fit ${boxClass} text-left text-justify`}
             >
                 <ReactMarkdown>{content}</ReactMarkdown>
             </div>

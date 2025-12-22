@@ -11,26 +11,6 @@ function App() {
   const inputRef = useRef(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  const transcribeAudio = async () => {
-    const formData = new FormData();
-    formData.append("audio", "whisper_test.m4a"); // file from audio recorder
-    
-    try{
-      const res = await fetch("http://localhost:3000/transcribe", {
-        method: "POST",
-        body: formData,
-      });
-      
-      const data = await res.json()
-
-    }catch(err){
-      console.error("Error calling transcription: ", err);
-    }finally{
-      setIsLoading(false);
-    }
-  }
-
-
   const getOllamaResponse = async () => {
     const query = inputRef.current?.getValue?.();
     if(!query || query.trim() === "") return;
@@ -58,7 +38,7 @@ function App() {
 
   return (
       <div className="flex min-h-screen justify-center bg-stone-800">
-        <div className="flex flex-col justify-between border border-stone-300 w-[1200px] h-[900px] m-4 rounded-lg">
+        <div className="flex flex-col justify-between border border-red-300 w-[1200px] h-[900px] max-h-[1600px] m-4 rounded-lg">
           <div className="h-[750px] overflow-auto">
             {messages.map((msg, idx) => (
               <MessageBox key={idx} sender={msg.sender} content={msg.content}/>
@@ -66,7 +46,10 @@ function App() {
             {isLoading && <MessageBox sender="ollama" content="Thinking..." />}
           </div>
           <div className="flex items-center justify-center">
-            <InputBox ref={inputRef}/>
+            <InputBox 
+              ref={inputRef} 
+              onEnter={getOllamaResponse}
+            />
             <SendButton onClick={getOllamaResponse}/>  
           </div>
         </div>
