@@ -16,7 +16,7 @@ export async function handleToolRequest(request, history) {
 
   const tool_message = `[System Notification] Execution results:\n${results
     .map((r) => `- Tool ${r.tool}: ${JSON.stringify(r)}`)
-    .join("\n")}\nPlease inform the user.`;
+    .join("\n")}\nPlease inform the user and omit the tool calling command.`;
   addToHistory("user", tool_message);
   const followup = await getOllamaResponse(getHistory());
 

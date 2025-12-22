@@ -9,7 +9,7 @@ import { fileURLToPath } from "url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const whitelistPath = path.join(__dirname, "apps_whitelist.json");
-const whitelist = JSON.parse(fs.readFileSync(whitelistPath, "utf-8"));
+
 
 function response(result, message){
   return {
@@ -45,6 +45,7 @@ mcpServer.registerTool(
   },
 
   async ({ app_name }) => {
+    const whitelist = JSON.parse(fs.readFileSync(whitelistPath, "utf-8"));
     const lower = app_name.toLowerCase();
 
     const allowed = whitelist.apps.some(app =>
