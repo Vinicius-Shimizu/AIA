@@ -1,0 +1,2 @@
+-r todo_app/backend/requirements.txt
+psycopg[binary]
