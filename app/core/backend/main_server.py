@@ -1,8 +1,18 @@
 from fastapi import FastAPI
-from todo_app.backend.routes import router as todo_router
+from todo_app.backend import register as registerTodo
+from stt import setup as sttSetup
+from contextlib import asynccontextmanager
+
+stt = None
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    global stt
+    stt = sttSetup(app)
+    stt.start()
+    yield
+    stt.stop()
 
 
-app = FastAPI()
-
-if __name__ == "__main__":
-    app.include_router(todo_router)
+app = FastAPI(lifespan=lifespan)
+registerTodo(app)

@@ -33,7 +33,7 @@ async def lifespan(app: FastAPI):
                             status status_enum NOT NULL DEFAULT 'to-do'
                         )
                         """)
-        conn.commit()  # ← critical
+        conn.commit()
     yield
 
 
