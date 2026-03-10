@@ -10,18 +10,20 @@ import time
 from faster_whisper import WhisperModel
 from faster_whisper.vad import VadOptions, get_speech_timestamps
 import requests
+import asyncio
 
 class STTEngine:
-    def __init__(self):
+    def __init__(self, event_queue, loop):
         self.SAMPLE_RATE = 16000
         self.N_CHANNELS = 1
         self.WAKE_WORD = "aia"
-        self.server_url = "http://127.0.0.1:8000/stt"
 
         self.audio_queue = queue.Queue()
         self.buffer = np.zeros((0, 1), dtype=np.float32)
         self.state = "WAIT_WAKEWORD"
         self.stop_event = threading.Event()
+        self.event_queue = event_queue
+        self.loop = loop
 
         self.model = WhisperModel("large-v3", device="cuda", compute_type="float16")
 
@@ -36,15 +38,25 @@ class STTEngine:
         self.audio_queue.put(indata.copy())
 
     def recorder(self):
-        with sd.InputStream(
+        self.stream = sd.InputStream(
             samplerate=self.SAMPLE_RATE,
             channels=self.N_CHANNELS,
             dtype="float32",
             callback=self.audio_callback,
             blocksize=int(self.SAMPLE_RATE * 0.2)
-        ):
+        )
+        with self.stream: 
             while not self.stop_event.is_set():
                 sd.sleep(100)
+
+    def emitEvent(self, status, message):
+        future = asyncio.run_coroutine_threadsafe(
+            self.event_queue.put({
+                "status": status,
+                "message": message
+            }),
+            self.loop
+        )
 
     def transcriber(self):
         silence_frames = 0
@@ -55,7 +67,7 @@ class STTEngine:
 
         while not self.stop_event.is_set():
             try:
-                block = self.audio_queue.get()
+                block = self.audio_queue.get(timeout=0.1)
             except queue.Empty:
                 continue
 
@@ -102,23 +114,25 @@ class STTEngine:
                 if self.state == "WAIT_WAKEWORD":
                     if text.lower().strip(".") == self.WAKE_WORD:
                         self.state = "LISTEN_COMMAND"
-                        requests.post(url=self.server_url, json={'status': 'listening', 'message': 'Estou ouvindo'})
+                        self.emitEvent(status="listening", message="Estou ouvindo")
                 else:
-                    requests.post(url=self.server_url, json={'status': 'transcripted', 'message': text})
+                    self.emitEvent(status="transcripted", message=text)
 
                 self.buffer = np.zeros((0, 1), dtype=np.float32)
             
     def start(self):
         self.stop_event.clear()
 
-        self.recorder_thread = threading.Thread(target=self.recorder)
-        self.transcriber_thread = threading.Thread(target=self.transcriber)
+        self.recorder_thread = threading.Thread(target=self.recorder, daemon=True)
+        self.transcriber_thread = threading.Thread(target=self.transcriber, daemon=True)
 
         self.recorder_thread.start()
         self.transcriber_thread.start()
 
     def stop(self):
         self.stop_event.set()
+        if hasattr(self, "stream"):
+            self.stream.close()
         self.recorder_thread.join()
         self.transcriber_thread.join()
 
