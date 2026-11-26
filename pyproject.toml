@@ -1,0 +1,24 @@
+[project]
+name = "aia"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "Vinicius-Shimizu", email = "viniciusshmz@usp.br" }
+]
+requires-python = ">=3.12"
+dependencies = [
+    "pydantic>=2.14.4",
+]
+
+[project.scripts]
+aia = "aia:main"
+
+[build-system]
+requires = ["uv_build>=0.13.8,<0.14.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "pytest>=9.2.0",
+]

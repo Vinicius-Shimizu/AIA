@@ -1,7 +1,7 @@
 from typing import List
 from fastapi import APIRouter, HTTPException
-from todo_app.backend.schemas import TodoCreate, Todo, TodoBase, Priority, Status
-from todo_app.backend.db import get_connection
+from old.app.todo_app.backend.schemas import TodoCreate, Todo, TodoBase, Priority, Status
+from old.app.todo_app.backend.db import get_connection
 
 router = APIRouter(prefix="/todos")
 

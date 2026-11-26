@@ -1,9 +1,9 @@
 from fastapi import FastAPI
-from todo_app.backend import register as registerTodo
-from stt import STTEngine
+from old.app.todo_app.backend import register as registerTodo
+from old.app.stt import STTEngine
 from contextlib import asynccontextmanager
 import asyncio
-from ollama_client.model import Model
+from old.app.ollama_client.model import Model
 stt = None
 model = None
 mcp = None

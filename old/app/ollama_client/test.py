@@ -1,4 +1,4 @@
-from model import Model
+from old.app.ollama_client.model import Model
 import asyncio
 
 

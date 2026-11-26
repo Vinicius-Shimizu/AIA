@@ -1,7 +1,7 @@
 from fastapi import FastAPI
-from todo_app.backend.routes import router as todo_router
+from old.app.todo_app.backend.routes import router as todo_router
 from contextlib import asynccontextmanager
-from todo_app.backend.db import get_connection
+from old.app.todo_app.backend.db import get_connection
 
 
 @asynccontextmanager
